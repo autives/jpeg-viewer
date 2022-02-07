@@ -1,0 +1,6 @@
+*.jpg
+*.exe
+*.bmp
+.vscode
+/bin
+/libs
