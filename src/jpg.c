@@ -247,9 +247,9 @@ void ReadBaselineSOF(file* fileData, ImageData* header) {
                     header->valid = false;
                     return;
             }
-            if(Xsampling_factor == 2 && (header->width % 2) == 1)
+            if(Xsampling_factor == 2 && (header->mcu_width % 2) == 1)
                 header->mcu_width_padded++;
-            if(Ysampling_factor == 2 && (header->height % 2) == 1)
+            if(Ysampling_factor == 2 && (header->mcu_height % 2) == 1)
                 header->mcu_height_padded++;
             
             header->Xsampling_factor = Xsampling_factor;
@@ -487,6 +487,7 @@ ImageData* ReadHeader(const char *fileName) {
     }
 
     ReadBitStream(fileData, header);
+    free(fileData->data);
     free(fileData);
     return header;
 }

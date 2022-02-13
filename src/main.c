@@ -248,8 +248,14 @@ int main(int argc, char** argv) {
     GenerateHuffmanCodes(header);
     //PrintHeader(header);
     MCU* mcus = HuffmanDecoder(header);
+    free(header->bitsream->data);
+    free(header->bitsream);
 
     Dequantize(mcus, header);
+    for(int i = 0; i < 4; ++i){
+        if(header->table_set[i])
+            free(header->quant_table[i]);
+    } 
 
     InitConstants();
     InverseDCT(header, mcus);
@@ -268,7 +274,9 @@ int main(int argc, char** argv) {
                                                             mcus[blockRow * header->mcu_width_padded + blockColumn].b[pixelRow * 8 + pixelColumn]);
         }
     }
-    SaveImage(&img, "hello.bmp");
+    //SaveImage(&img, "hello.bmp");
+    free(mcus);
+    free(header);
 
     if(SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         printf("Failed to initialize SDL\n");
@@ -276,24 +284,17 @@ int main(int argc, char** argv) {
     }
 
     Uint32 rmask, gmask, bmask, amask;
-    #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    int shift = (req_format == STBI_rgb) ? 8 : 0;
-    rmask = 0xff000000 >> shift;
-    gmask = 0x00ff0000 >> shift;
-    bmask = 0x0000ff00 >> shift;
-    amask = 0x000000ff >> shift;
-    #else // little endian, like x86
-    rmask = 0x000000ff;
+    amask = 0x00000000;
+    rmask = 0x00ff0000;
     gmask = 0x0000ff00;
-    bmask = 0x00ff0000;
-    amask = 0xff000000;
-    #endif
+    bmask = 0x000000ff;
 
     SDL_Window *window = SDL_CreateWindow(argv[1], SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, img.width, img.height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-    SDL_Surface *surface = SDL_LoadBMP("hello.bmp");
+    SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(img.pixel_data, img.width, img.height, 32, 4 * img.width, rmask, gmask, bmask, amask);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_SetWindowMinimumSize(window, img.width, img.height);
+    free(img.pixel_data);
 
     if(window == NULL || renderer == NULL || texture == NULL) {
         printf("Failure\n");

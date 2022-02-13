@@ -88,9 +88,10 @@ MCU* HuffmanDecoder(const ImageData* header) {
 
     BitReader *b = InitBitReader(header->bitsream);
 
+    int restart_interval = header->restart_interval * header->Xsampling_factor * header->Ysampling_factor;
     for (int y = 0; y < header->mcu_height; y += header->Ysampling_factor) {
         for(int x = 0; x < header->mcu_width; x += header->Xsampling_factor) {
-            if (header->restart_interval != 0 && ((y * header->mcu_width_padded + x) % header->restart_interval) == 0) {
+            if (header->restart_interval != 0 && ((y * header->mcu_width_padded + x) % restart_interval) == 0) {
                 prev_DC_coeff[0] = 0;
                 prev_DC_coeff[1] = 0;
                 prev_DC_coeff[2] = 0;
